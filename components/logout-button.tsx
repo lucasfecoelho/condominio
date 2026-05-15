@@ -3,8 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { logout } from "@/app/app/actions";
+import { Button } from "@/components/ui/button";
 
-export function LogoutButton() {
+type LogoutButtonProps = {
+  variant?: "default" | "danger";
+};
+
+export function LogoutButton({ variant = "default" }: LogoutButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -17,14 +22,21 @@ export function LogoutButton() {
     router.refresh();
   }
 
+  const className =
+    variant === "danger"
+      ? "w-full"
+      : "";
+
   return (
-    <button
-      className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm font-medium text-muted transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-70"
-      disabled={isLoading}
+    <Button
+      className={className}
+      isLoading={isLoading}
+      loadingLabel="Saindo..."
       onClick={handleLogout}
       type="button"
+      variant={variant === "danger" ? "danger" : "secondary"}
     >
-      {isLoading ? "Saindo..." : "Sair"}
-    </button>
+      Sair
+    </Button>
   );
 }

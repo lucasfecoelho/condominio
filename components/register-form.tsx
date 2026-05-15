@@ -3,11 +3,17 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { registerWithPassword } from "@/app/cadastro/actions";
+import { Alert } from "@/components/ui/alert";
+import { Button, getButtonClassName } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { uiMessages } from "@/lib/ui/messages";
 
 export function RegisterForm() {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -18,7 +24,24 @@ export function RegisterForm() {
     setMessage("");
     setErrorMessage("");
 
-    const result = await registerWithPassword({ email, password });
+    if (password.length < 12) {
+      setErrorMessage("A senha deve ter pelo menos 12 caracteres.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (password !== passwordConfirmation) {
+      setErrorMessage("As senhas não coincidem.");
+      setIsLoading(false);
+      return;
+    }
+
+    const result = await registerWithPassword({
+      fullName,
+      email,
+      password,
+      passwordConfirmation,
+    });
 
     if (!result.success) {
       setErrorMessage(result.message);
@@ -26,91 +49,88 @@ export function RegisterForm() {
       return;
     }
 
+    setFullName("");
     setEmail("");
     setPassword("");
-    setMessage("Cadastro realizado. Seu acesso será analisado antes da liberação.");
+    setPasswordConfirmation("");
+    setMessage(uiMessages.registrationSubmitted);
     setIsLoading(false);
   }
 
   return (
     <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-ink" htmlFor="register-email">
-          E-mail
-        </label>
-        <input
-          autoComplete="username"
-          className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-base text-ink outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
-          id="register-email"
-          name="email"
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="gestor@condominio.com"
-          required
-          type="email"
-          value={email}
-        />
-      </div>
+      <Input
+        autoComplete="name"
+        id="register-name"
+        label="Nome completo"
+        name="fullName"
+        onChange={(event) => setFullName(event.target.value)}
+        placeholder="Seu nome completo"
+        required
+        type="text"
+        value={fullName}
+      />
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-ink" htmlFor="register-password">
-          Senha
-        </label>
-        <div className="relative">
-          <input
-            autoComplete="new-password"
-            className="w-full rounded-2xl border border-border bg-surface px-4 py-3 pr-14 text-base text-ink outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
-            id="register-password"
-            name="password"
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Crie uma senha"
-            required
-            type={isPasswordVisible ? "text" : "password"}
-            value={password}
-          />
-          <button
-            aria-label={isPasswordVisible ? "Ocultar senha" : "Mostrar senha"}
-            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted transition hover:text-primary"
-            onClick={() => setIsPasswordVisible((current) => !current)}
-            type="button"
-          >
-            {isPasswordVisible ? "◉" : "◎"}
-          </button>
-        </div>
-      </div>
+      <Input
+        autoComplete="username"
+        id="register-email"
+        label="E-mail"
+        name="email"
+        onChange={(event) => setEmail(event.target.value)}
+        placeholder="gestor@condominio.com"
+        required
+        type="email"
+        value={email}
+      />
+
+      <PasswordInput
+        autoComplete="new-password"
+        helperText="Use pelo menos 12 caracteres."
+        id="register-password"
+        label="Senha"
+        minLength={12}
+        name="password"
+        onChange={(event) => setPassword(event.target.value)}
+        placeholder="Crie uma senha"
+        required
+        value={password}
+      />
+
+      <PasswordInput
+        autoComplete="new-password"
+        id="register-password-confirmation"
+        label="Confirmar senha"
+        minLength={12}
+        name="passwordConfirmation"
+        onChange={(event) => setPasswordConfirmation(event.target.value)}
+        placeholder="Repita a senha"
+        required
+        value={passwordConfirmation}
+      />
 
       {message ? (
-        <p
-          aria-live="polite"
-          className="rounded-2xl bg-success/10 px-4 py-3 text-sm text-success"
-        >
-          {message}
-        </p>
+        <Alert variant="success">{message}</Alert>
       ) : null}
 
       {errorMessage ? (
-        <p
-          aria-live="polite"
-          className="rounded-2xl bg-error/10 px-4 py-3 text-sm text-error"
-        >
-          {errorMessage}
-        </p>
+        <Alert variant="error">{errorMessage}</Alert>
       ) : null}
 
-      <button
-        className="flex w-full items-center justify-center rounded-2xl bg-primary px-4 py-3 text-base font-medium text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-70"
-        disabled={isLoading}
+      <Button
+        className="w-full"
+        isLoading={isLoading}
+        loadingLabel={uiMessages.creatingAccount}
         type="submit"
       >
-        {isLoading ? "Enviando..." : "Criar conta"}
-      </button>
+        Criar conta
+      </Button>
 
       <Link
-        className="flex w-full items-center justify-center rounded-2xl border border-border px-4 py-3 text-base font-medium text-muted transition hover:border-primary hover:text-primary"
+        className={getButtonClassName("secondary", "w-full")}
         href="/"
       >
-        Voltar para login
+        Já tenho conta
       </Link>
     </form>
   );
 }
-

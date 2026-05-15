@@ -7,19 +7,19 @@ import { uiMessages } from "@/lib/ui/messages";
 
 export const dynamic = "force-dynamic";
 
-export default async function WaitingApprovalPage() {
+export default async function BlockedAccessPage() {
   const session = await getValidSessionContext();
 
   if (!session) {
-    redirect("/");
+    redirect("/login?status=blocked");
   }
 
   if (session.status === "active") {
     redirect("/app");
   }
 
-  if (session.status === "blocked") {
-    redirect("/acesso-bloqueado");
+  if (session.status === "pending") {
+    redirect("/aguardando-aprovacao");
   }
 
   return (
@@ -27,23 +27,20 @@ export default async function WaitingApprovalPage() {
       <Card className="w-full max-w-xl p-6 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="inline-flex rounded-full bg-warning/10 px-3 py-1 text-sm font-medium text-warning">
-              Aguardando aprovação
+            <div className="inline-flex rounded-full bg-error/10 px-3 py-1 text-sm font-medium text-error">
+              Acesso bloqueado
             </div>
             <h1 className="mt-6 text-3xl font-semibold tracking-tight text-ink">
-              Cadastro recebido
+              Acesso bloqueado
             </h1>
           </div>
 
           <LogoutButton />
         </div>
 
-        <Alert className="mt-5" variant="warning">
-          {uiMessages.accessPending}
+        <Alert className="mt-5" variant="error">
+          {uiMessages.accessBlocked}
         </Alert>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
-          Assim que for liberado, você poderá acessar o sistema normalmente.
-        </p>
       </Card>
     </main>
   );

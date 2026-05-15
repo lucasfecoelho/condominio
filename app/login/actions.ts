@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { startAppSession } from "@/lib/auth/session";
-import { getUserAccessStatus } from "@/lib/auth/access-status";
+import { getProfileForUser } from "@/lib/auth/profile";
+import { uiMessages } from "@/lib/ui/messages";
 
 type LoginInput = {
   email: string;
@@ -26,13 +27,14 @@ export async function loginWithPassword({
   if (error) {
     return {
       success: false,
-      message: "Não foi possível entrar. Verifique seu e-mail e senha.",
+      message: uiMessages.invalidLogin,
     };
   }
 
   await startAppSession();
 
-  const status = getUserAccessStatus(data.user);
+  const profile = await getProfileForUser(data.user, supabase);
+  const status = profile?.status ?? "pending";
 
   if (status === "active") {
     return { success: true, nextPath: "/app" };
@@ -42,5 +44,5 @@ export async function loginWithPassword({
     return { success: true, nextPath: "/aguardando-aprovacao" };
   }
 
-  return { success: true, nextPath: "/login?status=blocked" };
+  return { success: true, nextPath: "/acesso-bloqueado" };
 }

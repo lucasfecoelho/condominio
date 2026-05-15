@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
+import { Alert } from "@/components/ui/alert";
+import { Card } from "@/components/ui/card";
+import { getButtonClassName } from "@/components/ui/button";
+import { uiMessages } from "@/lib/ui/messages";
 
 type AuthCardProps = {
-  blockedMessage?: boolean;
+  message?: "blocked" | "session-expired";
 };
 
-export function AuthCard({ blockedMessage = false }: AuthCardProps) {
+export function AuthCard({ message }: AuthCardProps) {
   return (
-    <div className="w-full max-w-md rounded-[2rem] border border-border bg-surface p-5 shadow-soft sm:p-8">
+    <Card className="w-full max-w-md p-5 sm:p-8">
       <p className="text-sm font-medium uppercase tracking-[0.18em] text-secondary">
         Acesso seguro
       </p>
@@ -18,11 +22,15 @@ export function AuthCard({ blockedMessage = false }: AuthCardProps) {
         Entre para continuar no Condomínio.
       </p>
 
-      {blockedMessage ? (
-        <p className="mt-5 rounded-2xl bg-error/10 px-4 py-3 text-sm text-error">
-          Seu acesso está bloqueado no momento. Entre em contato com a
-          administração para mais informações.
-        </p>
+      {message ? (
+        <Alert
+          className="mt-5"
+          variant={message === "blocked" ? "error" : "warning"}
+        >
+          {message === "blocked"
+            ? uiMessages.accessBlocked
+            : uiMessages.sessionExpired}
+        </Alert>
       ) : null}
 
       <LoginForm />
@@ -36,12 +44,14 @@ export function AuthCard({ blockedMessage = false }: AuthCardProps) {
       </div>
 
       <Link
-        className="flex w-full items-center justify-center rounded-2xl border border-primary px-4 py-3 text-base font-medium text-primary transition hover:bg-primary-light"
+        className={getButtonClassName(
+          "secondary",
+          "w-full border-primary text-primary hover:bg-primary-light",
+        )}
         href="/cadastro"
       >
         Criar conta
       </Link>
-    </div>
+    </Card>
   );
 }
-

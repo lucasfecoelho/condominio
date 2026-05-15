@@ -6,12 +6,12 @@ import { getValidSessionContext } from "@/lib/auth/session";
 export const dynamic = "force-dynamic";
 
 type LoginPageProps = {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ reason?: string; status?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await getValidSessionContext();
-  const { status } = await searchParams;
+  const { reason, status } = await searchParams;
 
   if (session?.status === "active") {
     redirect("/app");
@@ -23,7 +23,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <PublicAuthShell>
-      <AuthCard blockedMessage={status === "blocked" || session?.status === "blocked"} />
+      <AuthCard
+        message={
+          status === "blocked" || session?.status === "blocked"
+            ? "blocked"
+            : reason === "session-expired"
+              ? "session-expired"
+              : undefined
+        }
+      />
     </PublicAuthShell>
   );
 }

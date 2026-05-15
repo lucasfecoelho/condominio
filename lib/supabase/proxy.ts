@@ -4,7 +4,7 @@ import {
   APP_LOGIN_AT_COOKIE,
   hasAppSessionExpired,
 } from "@/lib/auth/session-policy";
-import { getUserAccessStatus } from "@/lib/auth/access-status";
+import { normalizeProfileStatus } from "@/lib/auth/profile";
 import {
   getSupabasePublicKey,
   getSupabaseUrl,
@@ -46,10 +46,18 @@ export async function updateSession(request: NextRequest) {
   const isRegisterRoute = pathname.startsWith("/cadastro");
   const isHomeRoute = pathname === "/";
   const isWaitingRoute = pathname.startsWith("/aguardando-aprovacao");
+  const isBlockedRoute = pathname.startsWith("/acesso-bloqueado");
   const appSessionExpired =
     Boolean(user) &&
     hasAppSessionExpired(request.cookies.get(APP_LOGIN_AT_COOKIE)?.value);
-  const status = user ? getUserAccessStatus(user) : null;
+  const { data: profile } = user
+    ? await supabase
+        .from("app_profiles")
+        .select("status")
+        .eq("id", user.id)
+        .maybeSingle<{ status: string }>()
+    : { data: null };
+  const status = user ? normalizeProfileStatus(profile?.status) : null;
 
   if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone();
@@ -59,7 +67,8 @@ export async function updateSession(request: NextRequest) {
 
   if (user && appSessionExpired && isProtectedRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/login";
+    url.searchParams.set("reason", "session-expired");
     return NextResponse.redirect(url);
   }
 
@@ -71,8 +80,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && status === "blocked" && !appSessionExpired && isProtectedRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("status", "blocked");
+    url.pathname = "/acesso-bloqueado";
     return NextResponse.redirect(url);
   }
 
@@ -80,7 +88,11 @@ export async function updateSession(request: NextRequest) {
     user &&
     status === "active" &&
     !appSessionExpired &&
-    (isLoginRoute || isRegisterRoute || isHomeRoute || isWaitingRoute)
+    (isLoginRoute ||
+      isRegisterRoute ||
+      isHomeRoute ||
+      isWaitingRoute ||
+      isBlockedRoute)
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
@@ -102,11 +114,10 @@ export async function updateSession(request: NextRequest) {
     user &&
     status === "blocked" &&
     !appSessionExpired &&
-    (isHomeRoute || isWaitingRoute)
+    (isHomeRoute || isWaitingRoute || isLoginRoute || isRegisterRoute)
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("status", "blocked");
+    url.pathname = "/acesso-bloqueado";
     return NextResponse.redirect(url);
   }
 

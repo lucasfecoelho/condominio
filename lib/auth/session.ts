@@ -8,7 +8,11 @@ import {
   APP_SESSION_MAX_AGE_SECONDS,
   hasAppSessionExpired,
 } from "@/lib/auth/session-policy";
-import { getUserAccessStatus, type AccessStatus } from "@/lib/auth/access-status";
+import {
+  getProfileForUser,
+  type AppProfile,
+  type ProfileStatus,
+} from "@/lib/auth/profile";
 import { createClient } from "@/lib/supabase/server";
 
 function getCookieOptions() {
@@ -38,7 +42,8 @@ export async function clearAppSession() {
 
 export type ValidSessionContext = {
   user: User;
-  status: AccessStatus;
+  profile: AppProfile | null;
+  status: ProfileStatus;
 };
 
 export async function getValidSessionContext(): Promise<ValidSessionContext | null> {
@@ -60,28 +65,16 @@ export async function getValidSessionContext(): Promise<ValidSessionContext | nu
     return null;
   }
 
+  const profile = await getProfileForUser(user, supabase);
+
   return {
     user,
-    status: getUserAccessStatus(user),
+    profile,
+    status: profile?.status ?? "pending",
   };
 }
 
-export async function getValidSessionUser(): Promise<User | null> {
-  const session = await getValidSessionContext();
-  return session?.user ?? null;
-}
-
-export async function requireValidSessionUser() {
-  const user = await getValidSessionUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  return user;
-}
-
-export async function requireActiveSessionUser() {
+export async function requireActiveSessionContext() {
   const session = await getValidSessionContext();
 
   if (!session) {
@@ -93,8 +86,8 @@ export async function requireActiveSessionUser() {
   }
 
   if (session.status === "blocked") {
-    redirect("/login?status=blocked");
+    redirect("/acesso-bloqueado");
   }
 
-  return session.user;
+  return session;
 }

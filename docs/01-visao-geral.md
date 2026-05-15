@@ -4,33 +4,40 @@
 
 **Condomínio**
 
-## Nome exibido no PWA
+## Propósito
 
-**Condomínio**
+O Condomínio é um PWA responsivo para gestão condominial. Nesta fase, o foco não é entregar módulos de negócio, e sim criar uma fundação técnica segura, instalável e pronta para crescer sem retrabalho.
 
-## Objetivo da versão atual
+## O que já existe
 
-Criar uma fundação técnica clara para um aplicativo web progressivo, responsivo, instalável e protegido por autenticação, com uma home pública enxuta e um fluxo inicial de cadastro sujeito à aprovação.
+- home pública com login
+- cadastro com aprovação pendente
+- autenticação por e-mail e senha
+- perfil de acesso em `app_profiles`
+- sessão persistente com limite de 48 horas no app
+- área interna protegida
+- shell responsivo com sidebar no desktop e bottom bar no mobile
+- manifest, service worker e suporte a instalação como PWA
+- documentação técnica inicial
 
 ## Escopo atual
 
 - Next.js com App Router
 - TypeScript
 - Tailwind CSS
-- manifest e service worker
-- home pública com login
-- cadastro público com status inicial pendente
-- login, logout e sessão persistente com Supabase Auth
-- limite de sessão de 48 horas
-- área interna protegida
-- documentação inicial
+- Supabase Auth
+- Supabase/Postgres
+- PWA
+- deploy previsto em Vercel
 
-## Fora do escopo nesta etapa
+## Fora do escopo agora
 
-- funcionalidades de condomínio
+- funcionalidades reais de condomínio
+- dashboard real com indicadores
 - banco de dados de negócio
-- painel administrativo
+- upload de arquivos
+- notificações
 - login com Google
 - recuperação de senha
-- integrações externas
-
+- painel administrativo de aprovação
+- relatórios

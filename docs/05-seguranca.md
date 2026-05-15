@@ -1,54 +1,48 @@
 # 05 - Segurança
 
-## Decisões de autenticação
+## Princípios
 
-- Login apenas com e-mail e senha nesta fase.
-- Cadastro público permitido, mas sem liberação automática da área interna.
-- Login com Google fica fora desta etapa.
-- Usuários novos começam como `pending` até aprovação.
+- nunca usar `SUPABASE_SERVICE_ROLE_KEY` no frontend
+- nunca salvar senha manualmente fora do Supabase Auth
+- nunca colocar segredos no código-fonte
+- manter variáveis de ambiente fora do repositório
+- não enviar dados sensíveis para `localStorage` ou `sessionStorage`
 
-## Por que o cadastro não libera acesso automaticamente
+## Autenticação e autorização
 
-O produto ainda está consolidando sua fundação. Permitir solicitação de conta sem conceder acesso imediato reduz risco operacional e preserva controle sobre quem entra na área autenticada.
+- login apenas por e-mail e senha nesta fase
+- senha mínima de 12 caracteres
+- cadastro não libera acesso automaticamente
+- novos usuários começam como `pending`
+- usuários comuns não podem alterar `role` nem `status`
+- a área interna só aceita usuários `active`
 
-## Por que não há login com Google
+## Sessão máxima de 48 horas
 
-Nesta fase, o objetivo é manter a autenticação simples e previsível. Adicionar provedores externos cedo demais aumenta configuração, suporte e caminhos de erro sem entregar valor proporcional ao estágio atual.
+- após login bem-sucedido, o app registra o horário em cookie `httpOnly`
+- ao carregar área autenticada, o servidor valida o tempo decorrido
+- se passar de 48 horas, a sessão é encerrada e o usuário precisa entrar novamente
+- em produção, a política nativa equivalente do Supabase também deve ser configurada, se disponível
 
-## Regra de sessão de 48 horas
+## Banco de dados
 
-- Após login bem-sucedido, o app registra o horário do login em cookie `httpOnly`.
-- Ao carregar a área autenticada, o servidor verifica se o login tem mais de 48 horas.
-- Se o limite tiver expirado, o app encerra a sessão e redireciona para `/login`.
-- Quando a política final de produção for definida, o limite nativo de sessão do Supabase também deve ser configurado no painel.
+- RLS é obrigatória em todas as tabelas expostas
+- `app_profiles` já nasce com RLS habilitada
+- cada usuário lê apenas o próprio perfil
+- o insert permitido é apenas do próprio perfil pendente
+- não existe política permissiva de update para usuários comuns
 
-## Status de acesso
+## Checklist antes de produção
 
-- `app_metadata.status` é a fonte segura para `active`, `pending` e `blocked`.
-- Usuários sem status explícito são tratados como `pending`.
-- `user_metadata` não deve ser usado para autorização, porque pode ser alterado pelo próprio usuário.
-
-## Chaves e segredos
-
-- Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no frontend.
-- Não colocar chaves secretas no código-fonte.
-- Usar no cliente apenas chaves públicas apropriadas, como `NEXT_PUBLIC_SUPABASE_ANON_KEY` ou `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-- Não armazenar senha em `localStorage`, `sessionStorage` ou qualquer outro armazenamento local.
-- Não armazenar dados sensíveis em armazenamento local.
-
-## Banco de dados futuro
-
-Todas as tabelas de negócio futuras devem nascer com **Row Level Security (RLS)** habilitado e políticas revisadas antes de produção.
-
-## Checklist básico antes de produção
-
-- [ ] Revisar variáveis de ambiente por ambiente
-- [ ] Confirmar ausência de `service_role` no frontend
-- [ ] Configurar duração máxima de sessão no Supabase
-- [ ] Habilitar e revisar RLS em todas as tabelas de negócio
-- [ ] Revisar políticas de cookies e HTTPS
-- [ ] Testar login, logout, expiração e redirecionamentos
-- [ ] Construir fluxo administrativo seguro para aprovação/bloqueio
-- [ ] Revisar logs e mensagens de erro para não expor dados sensíveis
-- [ ] Planejar recuperação de senha e MFA antes de ampliar o uso
-
+- [ ] revisar variáveis de ambiente por ambiente
+- [ ] confirmar ausência de `service_role` no frontend
+- [ ] manter segredo fora do código e do histórico Git
+- [ ] aplicar e revisar migrations
+- [ ] validar RLS em todas as tabelas de negócio
+- [ ] revisar políticas de Storage antes de qualquer upload
+- [ ] testar login, logout, expiração e redirecionamentos
+- [ ] configurar sessão máxima no Supabase, se disponível
+- [ ] revisar HTTPS, cookies e headers
+- [ ] revisar mensagens de erro para evitar vazamento de informação
+- [ ] planejar recuperação de senha antes de uso amplo
+- [ ] avaliar MFA quando o produto amadurecer

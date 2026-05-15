@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { PublicAuthShell } from "@/components/public-auth-shell";
 import { RegisterForm } from "@/components/register-form";
 import { getValidSessionContext } from "@/lib/auth/session";
+import { Card } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function RegisterPage() {
 
   return (
     <PublicAuthShell>
-      <div className="w-full max-w-md rounded-[2rem] border border-border bg-surface p-5 shadow-soft sm:p-8">
+      <Card className="w-full max-w-md p-5 sm:p-8">
         <p className="text-sm font-medium uppercase tracking-[0.18em] text-secondary">
           Novo acesso
         </p>
@@ -34,8 +35,7 @@ export default async function RegisterPage() {
         </p>
 
         <RegisterForm />
-      </div>
+      </Card>
     </PublicAuthShell>
   );
 }
-
