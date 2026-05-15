@@ -28,9 +28,14 @@
 
 - RLS é obrigatória em todas as tabelas expostas
 - `app_profiles` já nasce com RLS habilitada
+- `app_profiles.email` deve permanecer único
 - cada usuário lê apenas o próprio perfil
 - o insert permitido é apenas do próprio perfil pendente
 - não existe política permissiva de update para usuários comuns
+- a migration de endurecimento usa funções específicas para:
+  - verificar se um e-mail já tem perfil antes do cadastro
+  - garantir que o perfil pendente exista antes de exibir sucesso
+- se já houver duplicados em `app_profiles`, eles devem ser limpos antes de aplicar a constraint unique
 
 ## Checklist antes de produção
 
@@ -38,6 +43,7 @@
 - [ ] confirmar ausência de `service_role` no frontend
 - [ ] manter segredo fora do código e do histórico Git
 - [ ] aplicar e revisar migrations
+- [ ] verificar duplicados antes de aplicar constraints únicas em bases existentes
 - [ ] validar RLS em todas as tabelas de negócio
 - [ ] revisar políticas de Storage antes de qualquer upload
 - [ ] testar login, logout, expiração e redirecionamentos

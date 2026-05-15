@@ -26,6 +26,10 @@ export function normalizeProfileStatus(status?: string | null): ProfileStatus {
   return "pending";
 }
 
+export function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
 export async function getProfileForUser(
   user: User,
   client?: SupabaseClient,
@@ -47,3 +51,45 @@ export async function getProfileForUser(
   };
 }
 
+export async function hasProfileForEmail(
+  email: string,
+  client?: SupabaseClient,
+): Promise<boolean> {
+  const supabase = client ?? (await createClient());
+  const { data, error } = await supabase.rpc("app_profile_email_exists", {
+    candidate_email: normalizeEmail(email),
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data);
+}
+
+type EnsurePendingProfileInput = {
+  email: string;
+  fullName: string;
+  userId: string;
+};
+
+export async function ensurePendingProfileForSignupUser(
+  { email, fullName, userId }: EnsurePendingProfileInput,
+  client?: SupabaseClient,
+): Promise<boolean> {
+  const supabase = client ?? (await createClient());
+  const { data, error } = await supabase.rpc(
+    "ensure_pending_app_profile_for_signup",
+    {
+      candidate_email: normalizeEmail(email),
+      candidate_full_name: fullName.trim(),
+      candidate_user_id: userId,
+    },
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data);
+}

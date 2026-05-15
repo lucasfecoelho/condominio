@@ -43,7 +43,13 @@ export async function clearAppSession() {
 export type ValidSessionContext = {
   user: User;
   profile: AppProfile | null;
-  status: ProfileStatus;
+  status: ProfileStatus | null;
+};
+
+export type ActiveSessionContext = {
+  user: User;
+  profile: AppProfile;
+  status: "active";
 };
 
 export async function getValidSessionContext(): Promise<ValidSessionContext | null> {
@@ -70,15 +76,19 @@ export async function getValidSessionContext(): Promise<ValidSessionContext | nu
   return {
     user,
     profile,
-    status: profile?.status ?? "pending",
+    status: profile?.status ?? null,
   };
 }
 
-export async function requireActiveSessionContext() {
+export async function requireActiveSessionContext(): Promise<ActiveSessionContext> {
   const session = await getValidSessionContext();
 
   if (!session) {
     redirect("/");
+  }
+
+  if (!session.profile || !session.status) {
+    redirect("/login?reason=profile-incomplete");
   }
 
   if (session.status === "pending") {
@@ -89,5 +99,9 @@ export async function requireActiveSessionContext() {
     redirect("/acesso-bloqueado");
   }
 
-  return session;
+  return {
+    ...session,
+    profile: session.profile,
+    status: "active",
+  };
 }

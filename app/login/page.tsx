@@ -27,6 +27,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         message={
           status === "blocked" || session?.status === "blocked"
             ? "blocked"
+            : reason === "profile-incomplete" || session?.profile === null
+              ? "profile-incomplete"
             : reason === "session-expired"
               ? "session-expired"
               : undefined

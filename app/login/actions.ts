@@ -1,8 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { startAppSession } from "@/lib/auth/session";
-import { getProfileForUser } from "@/lib/auth/profile";
+import { clearAppSession, startAppSession } from "@/lib/auth/session";
+import { getProfileForUser, normalizeEmail } from "@/lib/auth/profile";
 import { uiMessages } from "@/lib/ui/messages";
 
 type LoginInput = {
@@ -20,7 +20,7 @@ export async function loginWithPassword({
 }: LoginInput): Promise<LoginResult> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
-    email,
+    email: normalizeEmail(email),
     password,
   });
 
@@ -31,10 +31,21 @@ export async function loginWithPassword({
     };
   }
 
+  const profile = await getProfileForUser(data.user, supabase);
+
+  if (!profile) {
+    await supabase.auth.signOut();
+    await clearAppSession();
+
+    return {
+      success: false,
+      message: uiMessages.profileIncomplete,
+    };
+  }
+
   await startAppSession();
 
-  const profile = await getProfileForUser(data.user, supabase);
-  const status = profile?.status ?? "pending";
+  const status = profile.status;
 
   if (status === "active") {
     return { success: true, nextPath: "/app" };

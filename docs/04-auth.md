@@ -32,15 +32,22 @@ O Condomínio usa **Supabase Auth** para identidade e `public.app_profiles` para
 ## Fluxo de cadastro
 
 1. O usuário informa nome completo, e-mail, senha e confirmação de senha.
-2. O frontend exige senha mínima de 12 caracteres.
-3. O Supabase Auth cria o usuário.
-4. Um trigger em `auth.users` cria automaticamente um perfil em `public.app_profiles`.
-5. O perfil nasce com:
+2. O e-mail é normalizado com `trim()` e `lowercase()`.
+3. O frontend exige senha mínima de 12 caracteres.
+4. Antes do signup, o app consulta `app_profiles` para evitar cadastro duplicado.
+5. Se o e-mail já estiver em `app_profiles`, o app mostra:
+   - `Este e-mail já possui cadastro. Faça login ou entre em contato com a administração.`
+6. O Supabase Auth cria o usuário.
+7. Um trigger em `auth.users` cria automaticamente um perfil em `public.app_profiles`.
+8. Depois do signup, o app confirma que o perfil pendente realmente existe antes de exibir sucesso.
+9. O perfil nasce com:
    - `role = 'user'`
    - `status = 'pending'`
    - `approved_at = null`
-6. O usuário recebe a mensagem:
+10. O usuário recebe a mensagem:
    - `Cadastro realizado. Seu acesso será analisado antes da liberação.`
+
+Esse cuidado evita sucesso falso quando o Supabase devolve uma resposta mascarada para um e-mail já existente ou quando a criação do perfil não se conclui corretamente.
 
 ## Aprovação manual
 
@@ -57,7 +64,21 @@ Nesta fase, a aprovação é manual no Supabase:
 - `pending`: vai para `/aguardando-aprovacao`
 - `blocked`: vai para `/acesso-bloqueado`
 
-Se um usuário autenticado não tiver perfil, o app o trata como `pending`, que é a alternativa mais conservadora.
+Se um usuário autenticar, mas não tiver perfil, o acesso é bloqueado com a mensagem:
+
+- `Seu cadastro ainda não foi concluído corretamente. Entre em contato com a administração.`
+
+## Confirmação de e-mail
+
+O Supabase pode exigir confirmação de e-mail antes do primeiro login.
+
+- Para conferir um usuário específico: **Authentication > Users** e verificar se o e-mail está confirmado.
+- Para ambiente de teste, a confirmação pode ser desativada em:
+  - **Authentication > Sign In / Providers > Email > Confirm email**
+
+Enquanto não houver um callback próprio de confirmação no app, o login mostra mensagem genérica quando a autenticação falha:
+
+- `E-mail ou senha inválidos, ou o e-mail ainda não foi confirmado.`
 
 ## Gerenciadores de senha
 

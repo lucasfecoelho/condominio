@@ -14,6 +14,10 @@ export default async function BlockedAccessPage() {
     redirect("/login?status=blocked");
   }
 
+  if (!session.profile || !session.status) {
+    redirect("/login?reason=profile-incomplete");
+  }
+
   if (session.status === "active") {
     redirect("/app");
   }

@@ -14,6 +14,10 @@ export default async function WaitingApprovalPage() {
     redirect("/");
   }
 
+  if (!session.profile || !session.status) {
+    redirect("/login?reason=profile-incomplete");
+  }
+
   if (session.status === "active") {
     redirect("/app");
   }
@@ -42,7 +46,7 @@ export default async function WaitingApprovalPage() {
           {uiMessages.accessPending}
         </Alert>
         <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
-          Assim que for liberado, você poderá  ter acessao ao sistema normalmente.
+          Assim que for liberado, você poderá acessar o sistema normalmente.
         </p>
       </Card>
     </main>

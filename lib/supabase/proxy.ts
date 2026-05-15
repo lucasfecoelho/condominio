@@ -57,7 +57,7 @@ export async function updateSession(request: NextRequest) {
         .eq("id", user.id)
         .maybeSingle<{ status: string }>()
     : { data: null };
-  const status = user ? normalizeProfileStatus(profile?.status) : null;
+  const status = profile ? normalizeProfileStatus(profile.status) : null;
 
   if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone();
@@ -69,6 +69,22 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("reason", "session-expired");
+    return NextResponse.redirect(url);
+  }
+
+  if (
+    user &&
+    !profile &&
+    !appSessionExpired &&
+    (isProtectedRoute ||
+      isRegisterRoute ||
+      isHomeRoute ||
+      isWaitingRoute ||
+      isBlockedRoute)
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("reason", "profile-incomplete");
     return NextResponse.redirect(url);
   }
 

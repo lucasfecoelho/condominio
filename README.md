@@ -58,13 +58,19 @@ Abra `http://localhost:3000`.
 3. Não habilite Google Login nesta fase.
 4. Configure senha mínima de 12 caracteres.
 5. Configure sessão máxima de 48 horas no painel do Supabase, se essa política estiver disponível para o projeto.
-6. Rode a migration:
+6. Verifique se a confirmação de e-mail deve ficar ligada no ambiente:
+   - com confirmação ligada, o usuário precisa confirmar o e-mail antes de conseguir entrar
+   - para testes locais, ela pode ser desativada em **Authentication > Sign In / Providers > Email > Confirm email**
+7. Rode as migrations:
 
 ```text
 supabase/migrations/20260515150000_create_app_profiles.sql
+supabase/migrations/20260515170000_harden_app_profile_registration.sql
 ```
 
-7. Para aprovar um usuário manualmente:
+Antes de aplicar a segunda migration em uma base que já tenha dados, limpe eventuais e-mails duplicados em `app_profiles`; a constraint unique falhará se duplicidades antigas permanecerem.
+
+8. Para aprovar um usuário manualmente:
    - abra **Table Editor > app_profiles**
    - altere `status` de `pending` para `active`
    - preencha `approved_at`
@@ -74,12 +80,13 @@ supabase/migrations/20260515150000_create_app_profiles.sql
 1. O usuário cria conta em `/cadastro`.
 2. O Supabase Auth cria a identidade.
 3. O trigger de banco cria `app_profiles` com `role = 'user'` e `status = 'pending'`.
-4. O usuário vê a mensagem de cadastro recebido.
-5. Enquanto estiver `pending`, é enviado para `/aguardando-aprovacao`.
-6. Quando um administrador altera o status para `active`, o usuário pode acessar `/app`.
-7. Usuários `blocked` são enviados para `/acesso-bloqueado`.
+4. O app valida a criação do perfil antes de mostrar sucesso.
+5. O usuário vê a mensagem de cadastro recebido.
+6. Enquanto estiver `pending`, é enviado para `/aguardando-aprovacao`.
+7. Quando um administrador altera o status para `active`, o usuário pode acessar `/app`.
+8. Usuários `blocked` são enviados para `/acesso-bloqueado`.
 
-Se um usuário autenticado não tiver perfil, o app o trata como `pending`, por segurança.
+Se o login for recusado, a mensagem permanece genérica: o problema pode ser senha incorreta ou e-mail ainda não confirmado. Se um usuário autenticado não tiver perfil válido, o acesso é bloqueado e o app pede contato com a administração.
 
 ## Vercel
 

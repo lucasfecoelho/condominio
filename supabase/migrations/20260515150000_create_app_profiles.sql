@@ -6,6 +6,7 @@ create table if not exists public.app_profiles (
   status text not null default 'pending',
   created_at timestamptz not null default now(),
   approved_at timestamptz null,
+  constraint app_profiles_email_unique unique (email),
   constraint app_profiles_role_check check (role in ('admin', 'user')),
   constraint app_profiles_status_check check (status in ('pending', 'active', 'blocked'))
 );
@@ -52,7 +53,7 @@ begin
   values (
     new.id,
     coalesce(nullif(trim(new.raw_user_meta_data ->> 'full_name'), ''), 'Usuário'),
-    new.email,
+    lower(trim(new.email)),
     'user',
     'pending',
     now(),
@@ -68,4 +69,3 @@ drop trigger if exists on_auth_user_created_app_profile on auth.users;
 create trigger on_auth_user_created_app_profile
 after insert on auth.users
 for each row execute procedure public.handle_new_app_profile();
-

@@ -6,7 +6,7 @@ import { getButtonClassName } from "@/components/ui/button";
 import { uiMessages } from "@/lib/ui/messages";
 
 type AuthCardProps = {
-  message?: "blocked" | "session-expired";
+  message?: "blocked" | "profile-incomplete" | "session-expired";
 };
 
 export function AuthCard({ message }: AuthCardProps) {
@@ -29,7 +29,9 @@ export function AuthCard({ message }: AuthCardProps) {
         >
           {message === "blocked"
             ? uiMessages.accessBlocked
-            : uiMessages.sessionExpired}
+            : message === "profile-incomplete"
+              ? uiMessages.profileIncomplete
+              : uiMessages.sessionExpired}
         </Alert>
       ) : null}
 
