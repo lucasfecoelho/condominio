@@ -42,7 +42,7 @@ export default async function WaitingApprovalPage() {
           {uiMessages.accessPending}
         </Alert>
         <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
-          Assim que for liberado, você poderá acessar o sistema normalmente.
+          Assim que for liberado, você poderá  ter acessao ao sistema normalmente.
         </p>
       </Card>
     </main>
